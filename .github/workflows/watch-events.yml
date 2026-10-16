@@ -2,7 +2,7 @@ name: Watch for new Gus events
 
 on:
   schedule:
-    - cron: "*/15 * * * *"   # every 15 minutes (UTC); GitHub may delay runs a few minutes
+    - cron: "*/5 * * * *"    # every 5 minutes (UTC), the shortest GitHub allows; runs may be delayed
   workflow_dispatch:          # adds a "Run workflow" button for manual runs
     inputs:
       test_email:
@@ -21,9 +21,9 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
