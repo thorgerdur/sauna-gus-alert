@@ -54,7 +54,9 @@ def build_email(events):
         else f"{count} new events"
     )
     msg["From"] = os.environ.get("SMTP_USER", "event-watcher@localhost")
-    msg["To"] = os.environ.get("EMAIL_TO", "")
+    # Recipients go in Bcc so they can't see each other's addresses.
+    msg["To"] = msg["From"]
+    msg["Bcc"] = os.environ.get("EMAIL_TO", "")
 
     text_lines, html_parts = [], []
     for e in events:
