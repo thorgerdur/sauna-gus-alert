@@ -8,7 +8,8 @@ Environment variables:
   SMTP_PORT      e.g. 465
   SMTP_USER      login for the SMTP server (also used as sender)
   SMTP_PASSWORD  app password for the SMTP server
-  EMAIL_TO       where to send the notification
+  EMAIL_TO       where to send the notification (comma-separated, sent as Bcc)
+  NTFY_TOPIC     optional ntfy.sh topic for phone push notifications
 
 Usage:
   python check_events.py                # fetch API_URL
@@ -27,6 +28,7 @@ from pathlib import Path
 
 STATE_FILE = Path(__file__).with_name("seen_events.json")
 DEFAULT_ACTIVITY_ID = "Activity2518853345471384032"
+CALENDAR_URL = "https://www.vinterbadbryggen.com/Activity/ActivityView"
 
 
 def load_calendar(args):
@@ -83,6 +85,43 @@ def send_email(msg):
         smtp.send_message(msg)
 
 
+def send_push(events, test=False):
+    """Push a phone notification via ntfy.sh (skipped if NTFY_TOPIC isn't set)."""
+    topic = os.environ.get("NTFY_TOPIC")
+    if not topic:
+        return
+    lines = [
+        f"{e['name']}: {e['startTime'][:16].replace('T', ' ')} "
+        f"({e['booked']}/{e['maxAttendees']} booked)"
+        for e in events
+    ]
+    payload = {
+        "topic": topic,
+        "title": ("[TEST] " if test else "") + ("New Gus event" if len(events) == 1 else f"{len(events)} new Gus events"),
+        "message": "\n".join(lines),
+        "tags": ["fire", "snowflake"],
+        "click": CALENDAR_URL,
+    }
+    req = urllib.request.Request(
+        "https://ntfy.sh/",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json", "User-Agent": "event-watcher/1.0"},
+    )
+    urllib.request.urlopen(req, timeout=30).close()
+
+
+def notify(events, dry_run, test=False):
+    msg = build_email(events)
+    if test:
+        msg.replace_header("Subject", "[TEST] " + msg["Subject"])
+    if dry_run:
+        print(msg["Subject"])
+        print(msg.get_body(("plain",)).get_content())
+        return
+    send_push(events, test)
+    send_email(msg)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--file")
@@ -100,22 +139,13 @@ def main():
         if not events:
             print("Test: no matching events right now, nothing to send.")
             return
-        msg = build_email(events)
-        msg.replace_header("Subject", "[TEST] " + msg["Subject"])
-        if args.dry_run:
-            print(msg["Subject"])
-        else:
-            send_email(msg)
-        print(f"Test email sent with {len(events)} current event(s).")
+        notify(events, args.dry_run, test=True)
+        print(f"Test notification sent with {len(events)} current event(s).")
     elif first_run:
         # Don't email everything that already exists; just start tracking.
         print(f"First run: recording {len(new)} existing event(s), no email sent.")
     elif new:
-        msg = build_email(new)
-        if args.dry_run:
-            print(msg.get_body(("plain",)).get_content())
-        else:
-            send_email(msg)
+        notify(new, args.dry_run)
         print(f"Notified about {len(new)} new event(s).")
     else:
         print("No new events.")
