@@ -28,7 +28,6 @@ from pathlib import Path
 
 STATE_FILE = Path(__file__).with_name("seen_events.json")
 DEFAULT_ACTIVITY_ID = "Activity2518853345471384032"
-CALENDAR_URL = "https://www.vinterbadbryggen.com/Activity/ActivityView"
 
 
 def load_calendar(args):
@@ -100,7 +99,6 @@ def send_push(events, test=False):
         "title": ("[TEST] " if test else "") + ("New Gus event" if len(events) == 1 else f"{len(events)} new Gus events"),
         "message": "\n".join(lines),
         "tags": ["fire", "snowflake"],
-        "click": CALENDAR_URL,
     }
     req = urllib.request.Request(
         "https://ntfy.sh/",
