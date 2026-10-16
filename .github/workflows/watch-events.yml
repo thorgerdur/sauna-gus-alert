@@ -1,0 +1,42 @@
+name: Watch for new Gus events
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"   # every 15 minutes (UTC); GitHub may delay runs a few minutes
+  workflow_dispatch:          # adds a "Run workflow" button for manual runs
+
+permissions:
+  contents: write             # lets the job commit seen_events.json back
+
+concurrency:
+  group: watch-events
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check API and send email
+        env:
+          API_URL: ${{ secrets.API_URL }}
+          ACTIVITY_ID: Activity2518853345471384032
+          SMTP_HOST: smtp.gmail.com
+          SMTP_PORT: "465"
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+        run: python check_events.py
+
+      - name: Save seen events
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898333+github-actions[bot]@users.noreply.github.com"
+          git add seen_events.json
+          git diff --cached --quiet || git commit -m "Update seen events"
+          git push
