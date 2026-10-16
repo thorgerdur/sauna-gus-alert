@@ -96,7 +96,18 @@ def main():
     seen = set() if first_run else set(json.loads(STATE_FILE.read_text()))
     new = [e for e in events if e["entityId"] not in seen]
 
-    if first_run:
+    if os.environ.get("TEST_EMAIL") == "true":
+        if not events:
+            print("Test: no matching events right now, nothing to send.")
+            return
+        msg = build_email(events)
+        msg.replace_header("Subject", "[TEST] " + msg["Subject"])
+        if args.dry_run:
+            print(msg["Subject"])
+        else:
+            send_email(msg)
+        print(f"Test email sent with {len(events)} current event(s).")
+    elif first_run:
         # Don't email everything that already exists; just start tracking.
         print(f"First run: recording {len(new)} existing event(s), no email sent.")
     elif new:
