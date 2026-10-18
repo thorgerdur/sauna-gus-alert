@@ -13,6 +13,15 @@ Add these repository secrets (Settings → Secrets and variables → Actions):
 - `NTFY_TOPIC` (optional): an [ntfy](https://ntfy.sh) topic name for phone push notifications.
   Subscribe to the same topic in the ntfy app.
 
+## Schedule
+
+GitHub's own `schedule` is unreliable (often hours apart), so [cron-job.org](https://cron-job.org)
+starts the workflow every 5 minutes through the GitHub API (`workflow_dispatch`). It uses a
+fine-grained token with **Actions: Read and write** on this repo only.
+
+- Token expires **16 January 2027**. Regenerate it and update the cron-job.org header before then.
+- 401 in cron-job.org means the token expired or is wrong.
+
 ## Test
 
 Actions → *Watch for new Gus events* → **Run workflow**, then tick **Send test email**.
