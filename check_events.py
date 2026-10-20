@@ -99,6 +99,7 @@ def send_push(events, test=False):
         "title": ("[TEST] " if test else "") + ("New Gus event" if len(events) == 1 else f"{len(events)} new Gus events"),
         "message": "\n".join(lines),
         "tags": ["fire", "snowflake"],
+        "priority": 4,  # high: shows as a banner and, on iPhone, as time-sensitive
     }
     req = urllib.request.Request(
         "https://ntfy.sh/",

@@ -22,6 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: main           # latest main at run time, so a queued run sees the previous run's seen_events.json
 
       - uses: actions/setup-python@v6
         with:
