@@ -49,7 +49,8 @@ def matching_events(calendar, activity_id):
 def build_email(events):
     msg = EmailMessage()
     count = len(events)
-    msg["Subject"] = (
+    # Same emojis as the ntfy push tags (fire, snowflake).
+    msg["Subject"] = "🔥❄️ " + (
         f"New event: {events[0]['name']} {events[0]['startTime'][:16].replace('T', ' ')}"
         if count == 1
         else f"{count} new events"

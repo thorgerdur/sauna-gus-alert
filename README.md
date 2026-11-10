@@ -19,7 +19,7 @@ GitHub's own `schedule` is unreliable (often hours apart), so [cron-job.org](htt
 starts the workflow every 5 minutes through the GitHub API (`workflow_dispatch`). It uses a
 fine-grained token with **Actions: Read and write** on this repo only.
 
-- Token expires **16 January 2027**. Regenerate it and update the cron-job.org header before then.
+- Token expires **Mon, 8 February 2027**. Regenerate it and update the cron-job.org header before then.
 - 401 in cron-job.org means the token expired or is wrong.
 
 ## Test
